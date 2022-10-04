@@ -1,8 +1,8 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, { useEffect, useState } from 'react';
 import './App.css';
-import { motion } from "framer-motion"
+import { motion, useAnimationControls } from "framer-motion"
 import styled from 'styled-components';
+import veryNice from './very-nice.png'
 
 // const Wrapper = styled(motion.div)`
 //   height: 200px;
@@ -52,10 +52,16 @@ function Box2() {
   )
 }
 
-function Box3({ height, width, stroke, x, y, children }: any) {
-  // const height = 200
-  // const width = 200
-  // const stroke = 3
+function Box3({ height, width, stroke, x, y, sequence, children }: any) {
+  const controls = useAnimationControls()
+
+  useEffect(() => {
+    if(sequence > 0) {
+      controls.start({
+        pathLength: 1.01
+      })
+    }
+  }, [sequence])
 
   const vb1 = -stroke
   const vb2 = -stroke
@@ -82,9 +88,7 @@ function Box3({ height, width, stroke, x, y, children }: any) {
           initial={{
             pathLength: 0
           }}
-          animate={{
-            pathLength: 1.01
-          }}
+          animate={controls}
           transition={{
             duration: 2,
             ease: 'easeInOut',
@@ -123,15 +127,85 @@ const Wrapper = styled.div`
 `
 
 function App() {
+  const controls = useAnimationControls()
+  const textControls = useAnimationControls()
+  const connectorControls = useAnimationControls()
+  const veryNiceControls = useAnimationControls()
+  const [sequenceNum, setSequenceNum] = useState(0)
+
+  useEffect(() => {
+    async function handleSequence(sequence: number) {
+      if(sequence === 1) {
+        controls.start({
+          opacity: 1
+        })
+      }
+      if(sequence === 2) {
+        connectorControls.start({ 
+          strokeDashoffset: 0,
+          transition: {
+            duration: 1,
+            repeat: Infinity,
+            ease: "linear"
+          }
+        })
+        connectorControls.start({ opacity: 1 })
+      }
+      if(sequence === 3) {
+        veryNiceControls.start({
+          width: 500,
+          height: 566
+        })
+      }
+    }
+    handleSequence(sequenceNum)
+  }, [sequenceNum])
+  
   return (
-    <Wrapper>
+    <Wrapper onClick={() => setSequenceNum(sequenceNum + 1)}>
       <Canvas>
-        <Box3 height={200} width={200} stroke={3} x={200} y={200} />
-        <Box3 height={200} width={200} stroke={3} x={800} y={200} />
+        <span style={{ position: 'absolute', top: 10, left: 10 }}>Sequence num: {sequenceNum}</span>
+        <Box3 height={200} width={200} stroke={3} x={200} y={200} sequence={sequenceNum}>
+          <motion.h1 initial={{ opacity: 0 }} animate={controls} transition={{ duration: 1 }}>Front end</motion.h1>
+        </Box3>
+        <Box3 height={200} width={200} stroke={3} x={600} y={200} sequence={sequenceNum}>
+          <motion.h1 initial={{ opacity: 0 }} animate={controls} transition={{ duration: 1 }}>Back end</motion.h1>
+        </Box3>
+        <Box3 height={200} width={200} stroke={3} x={1000} y={200} sequence={sequenceNum}>
+          <motion.h1 initial={{ opacity: 0 }} animate={controls} transition={{ duration: 1 }}>Database</motion.h1>
+        </Box3>
         <svg width="1920" height="1080">
-          <line x1="400" y1="300" x2="800" y2="300" stroke="black" strokeDasharray="4"/>
+          <motion.line x1="400" y1="300" x2="600" y2="300" stroke="black" strokeDasharray="10"
+            initial={{
+              // pathLength: 0,
+              // strokeDasharray: 10,
+              opacity: 0,
+              strokeDashoffset: 60
+            }}
+            animate={connectorControls}
+          />
+          <motion.line x1="800" y1="300" x2="1000" y2="300" stroke="black" strokeDasharray="10"
+            initial={{
+              // pathLength: 0,
+              // strokeDasharray: 10,
+              opacity: 0,
+              strokeDashoffset: 60
+            }}
+            animate={connectorControls}
+          />
           {/* <line x1="350" y1="350" x2="600" y2="200" stroke="black"/> */}
         </svg>
+        <motion.img style={{ position: "absolute", bottom: 10, right: 10 }}
+            src={veryNice}
+            initial={{
+              width: 0,
+              height: 0
+            }}
+            animate={veryNiceControls}
+            transition={{
+              duration: .5
+            }}
+          />
       </Canvas>
     </Wrapper>
   );
